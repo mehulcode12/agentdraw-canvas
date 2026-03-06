@@ -73,10 +73,10 @@ export function registerBuiltinAnimations(services) {
     new Konva.Animation(f => {
       const t = (f.time / 900) % 1;
       let v = 1;
-      if      (t < 0.1) v = 1 + t * 1.5;
+      if (t < 0.1) v = 1 + t * 1.5;
       else if (t < 0.2) v = 1.15 - (t - 0.1) * 1.5;
       else if (t < 0.3) v = 1 + (t - 0.2);
-      else if (t < 0.4) v = 1.1  - (t - 0.3) * 1.5;
+      else if (t < 0.4) v = 1.1 - (t - 0.3) * 1.5;
       shape.scaleX(s.origScaleX * v);
       shape.scaleY(s.origScaleY * v);
     }, layer)
@@ -86,12 +86,12 @@ export function registerBuiltinAnimations(services) {
     new Konva.Animation(f => {
       const t = (f.time / 1200) % 1;
       let sx = 1, sy = 1;
-      if (t < 0.3)      { sx = 1 + t * 0.6; sy = 1 - t * 0.25; }
-      else if (t < 0.5) { sx = 1.18 - (t-0.3)*0.9; sy = 0.925 + (t-0.3)*0.35; }
+      if (t < 0.3) { sx = 1 + t * 0.6; sy = 1 - t * 0.25; }
+      else if (t < 0.5) { sx = 1.18 - (t - 0.3) * 0.9; sy = 0.925 + (t - 0.3) * 0.35; }
       else {
-        const d = (t-0.5)/0.5;
-        sx = 1 + 0.03 * Math.sin(d * Math.PI * 4) * (1-d);
-        sy = 1 - 0.03 * Math.sin(d * Math.PI * 4) * (1-d);
+        const d = (t - 0.5) / 0.5;
+        sx = 1 + 0.03 * Math.sin(d * Math.PI * 4) * (1 - d);
+        sy = 1 - 0.03 * Math.sin(d * Math.PI * 4) * (1 - d);
       }
       shape.scaleX(s.origScaleX * sx);
       shape.scaleY(s.origScaleY * sy);
@@ -114,8 +114,8 @@ export function registerBuiltinAnimations(services) {
 
   reg('twinkle', { icon: '✨', label: 'Twinkle' }, (shape, s, layer) =>
     new Konva.Animation(f => {
-      const t  = f.time / 1000;
-      const v  = 0.82 + 0.18 * Math.abs(Math.sin(t * 3));
+      const t = f.time / 1000;
+      const v = 0.82 + 0.18 * Math.abs(Math.sin(t * 3));
       const sc = 0.96 + 0.06 * Math.abs(Math.sin(t * 3));
       shape.opacity(s.origOpacity * v);
       shape.scaleX(s.origScaleX * sc);
@@ -153,7 +153,7 @@ export function registerBuiltinAnimations(services) {
   reg('pop', { icon: '💥', label: 'Pop' }, (shape, s, layer) =>
     new Konva.Animation(f => {
       const t = (f.time / 600) % 1;
-      const v = t < 0.2 ? 1 + t * 5 * 0.2 : Math.max(1, 1.2 - (t-0.2) * 0.3);
+      const v = t < 0.2 ? 1 + t * 5 * 0.2 : Math.max(1, 1.2 - (t - 0.2) * 0.3);
       shape.scaleX(s.origScaleX * v);
       shape.scaleY(s.origScaleY * v);
     }, layer)
@@ -161,7 +161,7 @@ export function registerBuiltinAnimations(services) {
 
   reg('glitch', { icon: '👾', label: 'Glitch' }, (shape, s, layer) => {
     if (!shape.fill) return null;
-    const cols = ['#ff0000','#00ffff','#ff00ff'];
+    const cols = ['#ff0000', '#00ffff', '#ff00ff'];
     return new Konva.Animation(f => {
       const tick = Math.floor(f.time / 100);
       if (tick % 6 === 0) {
@@ -187,8 +187,33 @@ export function registerBuiltinAnimations(services) {
       const pulse = 0.5 + 0.5 * Math.sin(f.time / 1000 * Math.PI);
       shape.scaleX(s.origScaleX * (1 + 0.04 * pulse));
       shape.scaleY(s.origScaleY * (1 + 0.04 * pulse));
-      if (shape.shadowBlur)  shape.shadowBlur(8  + 14 * pulse);
+      if (shape.shadowBlur) shape.shadowBlur(8 + 14 * pulse);
       if (shape.shadowColor) shape.shadowColor('var(--accent)');
     }, layer)
   );
+
+  reg('fade-in', { icon: '👁️', label: 'Fade In' }, (shape, s, layer) =>
+    new Konva.Animation(f => {
+      const p = Math.min(1, f.time / 800);
+      shape.opacity(s.origOpacity * p);
+    }, layer)
+  );
+
+  reg('highlight-pulse', { icon: '✨', label: 'Highlight' }, (shape, s, layer) =>
+    new Konva.Animation(f => {
+      const p = 1 + 0.15 * Math.sin(f.time / 300 * Math.PI * 2);
+      shape.scaleX(s.origScaleX * p);
+      shape.scaleY(s.origScaleY * p);
+      shape.stroke(f.time % 400 < 200 ? 'var(--accent)' : s.origStroke);
+    }, layer)
+  );
+
+  reg('draw-on', { icon: '✍️', label: 'Draw' }, (shape, s, layer) => {
+    if (!shape.dash) shape.dash([1000, 1000]); // Large dash to simulate path length
+    return new Konva.Animation(f => {
+      const p = Math.min(1, f.time / 1000);
+      shape.dashOffset(1000 * (1 - p));
+    }, layer);
+  });
 }
+
