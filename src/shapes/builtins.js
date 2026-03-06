@@ -539,8 +539,109 @@ export function registerBuiltinShapes(services) {
       stroke: 'transparent'
     })
   );
+
+  // ── CHEMICAL ELEMENTS — Bohr Model (nucleus + electron shells) ─────────────
+  // Agent uses `atom-H`, `atom-C`, `atom-O`, etc.
+  // CPK colors for nucleus; correct electron counts per shell.
+  const ELEMENTS = [
+    { symbol: 'H', num: 1, shells: [1], fill: '#FFFFFF', textFill: '#333', border: '#999' },
+    { symbol: 'He', num: 2, shells: [2], fill: '#D9FFFF', textFill: '#333', border: '#8BB' },
+    { symbol: 'Li', num: 3, shells: [2, 1], fill: '#CC80FF', textFill: '#fff', border: '#9955CC' },
+    { symbol: 'Be', num: 4, shells: [2, 2], fill: '#C2FF00', textFill: '#333', border: '#99CC00' },
+    { symbol: 'B', num: 5, shells: [2, 3], fill: '#FFB5B5', textFill: '#333', border: '#CC8888' },
+    { symbol: 'C', num: 6, shells: [2, 4], fill: '#404040', textFill: '#fff', border: '#222' },
+    { symbol: 'N', num: 7, shells: [2, 5], fill: '#3050F8', textFill: '#fff', border: '#1030CC' },
+    { symbol: 'O', num: 8, shells: [2, 6], fill: '#FF0D0D', textFill: '#fff', border: '#CC0000' },
+    { symbol: 'F', num: 9, shells: [2, 7], fill: '#90E050', textFill: '#333', border: '#60BB20' },
+    { symbol: 'Ne', num: 10, shells: [2, 8], fill: '#B3E3F5', textFill: '#333', border: '#80AABB' },
+    { symbol: 'Na', num: 11, shells: [2, 8, 1], fill: '#AB5CF2', textFill: '#fff', border: '#7733BB' },
+    { symbol: 'Mg', num: 12, shells: [2, 8, 2], fill: '#8AFF00', textFill: '#333', border: '#55CC00' },
+    { symbol: 'Al', num: 13, shells: [2, 8, 3], fill: '#BFA6A6', textFill: '#333', border: '#998080' },
+    { symbol: 'Si', num: 14, shells: [2, 8, 4], fill: '#F0C8A0', textFill: '#333', border: '#CC9966' },
+    { symbol: 'P', num: 15, shells: [2, 8, 5], fill: '#FF8000', textFill: '#fff', border: '#CC5500' },
+    { symbol: 'S', num: 16, shells: [2, 8, 6], fill: '#FFFF30', textFill: '#333', border: '#CCCC00' },
+    { symbol: 'Cl', num: 17, shells: [2, 8, 7], fill: '#1FF01F', textFill: '#333', border: '#00CC00' },
+    { symbol: 'Ar', num: 18, shells: [2, 8, 8], fill: '#80D1E3', textFill: '#333', border: '#559999' },
+    { symbol: 'K', num: 19, shells: [2, 8, 8, 1], fill: '#8F40D4', textFill: '#fff', border: '#5C2299' },
+    { symbol: 'Ca', num: 20, shells: [2, 8, 8, 2], fill: '#3DFF00', textFill: '#333', border: '#22CC00' },
+  ];
+
+  ELEMENTS.forEach(el => {
+    shapes.register(`atom-${el.symbol}`, cfg => {
+      const scale = cfg.scale || 1;
+      const NUCLEUS_R = 18 * scale;
+      const SHELL_GAP = 22 * scale;
+      const ELECTRON_R = 4 * scale;
+      const group = new Konva.Group({ x: cfg.x || 0, y: cfg.y || 0 });
+
+      // ── Electron shells + electrons (drawn behind nucleus) ──────────
+      el.shells.forEach((electronCount, shellIdx) => {
+        const shellR = NUCLEUS_R + SHELL_GAP * (shellIdx + 1);
+
+        // Dashed orbit ring
+        group.add(new Konva.Circle({
+          radius: shellR,
+          fill: 'transparent',
+          stroke: cfg.shellColor || 'rgba(120,180,255,0.5)',
+          strokeWidth: 1.2 * scale,
+          dash: [4, 3],
+        }));
+
+        // Electron dots — evenly spaced, starting from the top
+        for (let e = 0; e < electronCount; e++) {
+          const angle = ((e / electronCount) * Math.PI * 2) - Math.PI / 2;
+          group.add(new Konva.Circle({
+            x: shellR * Math.cos(angle),
+            y: shellR * Math.sin(angle),
+            radius: ELECTRON_R,
+            fill: cfg.electronColor || '#60AAFF',
+            stroke: '#fff',
+            strokeWidth: 0.8 * scale,
+            shadowColor: '#3399FF',
+            shadowBlur: 4,
+            shadowOpacity: 0.6,
+          }));
+        }
+      });
+
+      // ── Nucleus ─────────────────────────────────────────────────────
+      group.add(new Konva.Circle({
+        radius: NUCLEUS_R,
+        fill: cfg.fill || el.fill,
+        stroke: el.border,
+        strokeWidth: 2 * scale,
+        shadowColor: el.border,
+        shadowBlur: 8,
+        shadowOpacity: 0.5,
+      }));
+
+      // Symbol — centered in nucleus
+      const symSize = el.symbol.length > 1 ? NUCLEUS_R * 0.9 : NUCLEUS_R * 1.1;
+      group.add(new Konva.Text({
+        text: el.symbol,
+        fontSize: symSize,
+        fontFamily: "'Arial', sans-serif",
+        fontStyle: 'bold',
+        fill: el.textFill,
+        align: 'center',
+        width: NUCLEUS_R * 2,
+        offsetX: NUCLEUS_R,
+        offsetY: symSize * 0.5,
+      }));
+
+      // Atomic number — small, top-left of nucleus
+      group.add(new Konva.Text({
+        text: String(el.num),
+        fontSize: NUCLEUS_R * 0.45,
+        fontFamily: "'Arial', sans-serif",
+        fill: el.textFill,
+        opacity: 0.8,
+        x: -NUCLEUS_R + 2 * scale,
+        y: -NUCLEUS_R + 2 * scale,
+      }));
+
+      return group;
+    });
+  });
 }
-
-
-
 
