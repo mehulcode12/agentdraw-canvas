@@ -299,6 +299,248 @@ export function registerBuiltinShapes(services) {
       }
     });
   });
+
+  shapes.register('curly-brace', cfg => {
+    const w = cfg.width || 40;
+    const h = cfg.height || 100;
+    return new Konva.Path({
+      ...cfg,
+      data: `M ${w} 0 Q 0 0 0 ${h / 4} T 0 ${h / 2} Q 0 ${h} ${w} ${h}`,
+      strokeWidth: 3,
+      lineCap: 'round',
+      tension: 0.5
+    });
+  });
+
+  shapes.register('angle-marker', cfg => {
+    return new Konva.Arc({
+      ...cfg,
+      innerRadius: cfg.innerRadius || 20,
+      outerRadius: cfg.outerRadius || 25,
+      angle: cfg.angle || 90,
+      fill: cfg.fill || 'rgba(255, 0, 0, 0.3)',
+      stroke: cfg.stroke || 'red',
+      strokeWidth: 1
+    });
+  });
+
+  shapes.register('beaker', cfg => {
+    return new Konva.Shape({
+      ...cfg,
+      sceneFunc(ctx, shape) {
+        const w = cfg.width || 60;
+        const h = cfg.height || 80;
+        const r = 5;
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.lineTo(w - r, 0);
+        ctx.lineTo(w, h - r);
+        ctx.quadraticCurveTo(w, h, w - r, h);
+        ctx.lineTo(r, h);
+        ctx.quadraticCurveTo(0, h, 0, h - r);
+        ctx.lineTo(r, 0);
+        ctx.closePath();
+        if (cfg.liquidColor) {
+          ctx.fillStyle = cfg.liquidColor;
+          ctx.beginPath();
+          ctx.rect(r, h * 0.4, w - 2 * r, h * 0.55);
+          ctx.fill();
+        }
+        ctx.fillStrokeShape(shape);
+      }
+    });
+  });
+
+  shapes.register('checkmark', cfg =>
+    new Konva.Path({
+      ...cfg,
+      data: 'M1 7 l4 4 l8 -8',
+      strokeWidth: 4,
+      lineCap: 'round',
+      stroke: cfg.stroke || '#4CAF50'
+    })
+  );
+
+  shapes.register('x-mark', cfg =>
+    new Konva.Path({
+      ...cfg,
+      data: 'M1 1 l10 10 M11 1 l-10 10',
+      strokeWidth: 4,
+      lineCap: 'round',
+      stroke: cfg.stroke || '#F44336'
+    })
+  );
+
+  shapes.register('dna-helix', cfg => {
+    return new Konva.Shape({
+      ...cfg,
+      sceneFunc(ctx, shape) {
+        const w = cfg.width || 40;
+        const h = cfg.height || 120;
+        const steps = 15;
+        // Strand 1
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const y = (i / steps) * h;
+          const x = Math.sin((y / h) * Math.PI * 4) * (w / 2) + w / 2;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        // Strand 2
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const y = (i / steps) * h;
+          const x = Math.sin((y / h) * Math.PI * 4 + Math.PI) * (w / 2) + w / 2;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.fillStrokeShape(shape);
+      }
+    });
+  });
+
+  shapes.register('lightbulb', cfg => {
+    return new Konva.Shape({
+      ...cfg,
+      sceneFunc(ctx, shape) {
+        const r = 20;
+        ctx.beginPath();
+        ctx.arc(r, r, r, 0.7 * Math.PI, 0.3 * Math.PI, false);
+        ctx.lineTo(r + 10, r + 35);
+        ctx.lineTo(r - 10, r + 35);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Base lines
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.moveTo(r - 8, r + 38 + i * 4);
+          ctx.lineTo(r + 8, r + 38 + i * 4);
+          ctx.stroke();
+        }
+        ctx.fillStrokeShape(shape);
+      }
+    });
+  });
+
+  shapes.register('warning-sign', cfg => {
+    const group = new Konva.Group(cfg);
+    group.add(new Konva.RegularPolygon({
+      sides: 3,
+      radius: 30,
+      fill: '#FFC107',
+      stroke: '#000',
+      strokeWidth: 2
+    }));
+    group.add(new Konva.Text({
+      text: '!',
+      fontSize: 24,
+      fontStyle: 'bold',
+      fill: '#000',
+      offsetX: 4,
+      offsetY: 12
+    }));
+    return group;
+  });
+
+  shapes.register('atom', cfg => {
+    const group = new Konva.Group(cfg);
+    const r = 30;
+    // Nucleus
+    group.add(new Konva.Circle({ radius: 8, fill: cfg.fill || '#333' }));
+    // Orbits
+    for (let i = 0; i < 3; i++) {
+      group.add(new Konva.Ellipse({
+        radiusX: r, radiusY: 12,
+        rotation: i * 60,
+        stroke: cfg.stroke || '#888',
+        strokeWidth: 1
+      }));
+    }
+    return group;
+  });
+
+  shapes.register('open-book', cfg => {
+    return new Konva.Shape({
+      ...cfg,
+      sceneFunc(ctx, shape) {
+        const w = 60;
+        const h = 40;
+        // Left page
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(w / 2, -10, w, 0);
+        ctx.lineTo(w, h);
+        ctx.quadraticCurveTo(w / 2, h - 10, 0, h);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Right page
+        ctx.beginPath();
+        ctx.moveTo(w, 0);
+        ctx.quadraticCurveTo(w + w / 2, -10, w * 2, 0);
+        ctx.lineTo(w * 2, h);
+        ctx.quadraticCurveTo(w + w / 2, h - 10, w, h);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStrokeShape(shape);
+      }
+    });
+  });
+
+  shapes.register('gear', cfg => {
+    return new Konva.Shape({
+      ...cfg,
+      sceneFunc(ctx, shape) {
+        const r = 30;
+        const inner = 15;
+        const teeth = 8;
+        ctx.beginPath();
+        for (let i = 0; i < teeth * 2; i++) {
+          const angle = (i / (teeth * 2)) * Math.PI * 2;
+          const dist = i % 2 === 0 ? r : r - 8;
+          ctx.lineTo(r + dist * Math.cos(angle), r + dist * Math.sin(angle));
+        }
+        ctx.closePath();
+        ctx.moveTo(r + inner, r);
+        ctx.arc(r, r, inner, 0, Math.PI * 2, true);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStrokeShape(shape);
+      }
+    });
+  });
+
+  shapes.register('magnifier', cfg => {
+    const group = new Konva.Group(cfg);
+    group.add(new Konva.Circle({
+      radius: 20,
+      fill: 'rgba(173, 216, 230, 0.3)',
+      stroke: '#333',
+      strokeWidth: 3
+    }));
+    group.add(new Konva.Line({
+      points: [14, 14, 30, 30],
+      stroke: '#333',
+      strokeWidth: 5,
+      lineCap: 'round'
+    }));
+    return group;
+  });
+
+  shapes.register('grid-node', cfg =>
+    new Konva.Circle({
+      ...cfg,
+      radius: 4,
+      fill: cfg.fill || '#ccc',
+      stroke: 'transparent'
+    })
+  );
 }
+
+
 
 
