@@ -32,13 +32,14 @@ export function registerBuiltinAnimations(services) {
   );
 
   reg('rainbow', { icon: '🌈', label: 'Rainbow' }, (shape, s, layer) => {
-    if (!shape.fill) return null;
+    const ft = s.fillTarget || shape;
+    if (!ft.fill) return null;
     return new Konva.Animation(f => {
       const t = (f.time / 100) % 360;
       const R = Math.round(127 + 127 * Math.sin(t * Math.PI / 180));
       const G = Math.round(127 + 127 * Math.sin((t + 120) * Math.PI / 180));
       const B = Math.round(127 + 127 * Math.sin((t + 240) * Math.PI / 180));
-      shape.fill(`rgb(${R},${G},${B})`);
+      ft.fill(`rgb(${R},${G},${B})`);
     }, layer);
   });
 
@@ -160,18 +161,19 @@ export function registerBuiltinAnimations(services) {
   );
 
   reg('glitch', { icon: '👾', label: 'Glitch' }, (shape, s, layer) => {
-    if (!shape.fill) return null;
+    const ft = s.fillTarget || shape;
+    if (!ft.fill) return null;
     const cols = ['#ff0000', '#00ffff', '#ff00ff'];
     return new Konva.Animation(f => {
       const tick = Math.floor(f.time / 100);
       if (tick % 6 === 0) {
         shape.x(s.origX + (Math.random() - 0.5) * 10);
         shape.y(s.origY + (Math.random() - 0.5) * 6);
-        shape.fill(cols[Math.floor(Math.random() * cols.length)]);
+        ft.fill(cols[Math.floor(Math.random() * cols.length)]);
       } else {
         shape.x(s.origX);
         shape.y(s.origY);
-        if (s.origFill) shape.fill(s.origFill);
+        if (s.origFill) ft.fill(s.origFill);
       }
     }, layer);
   });
@@ -182,15 +184,16 @@ export function registerBuiltinAnimations(services) {
     }, layer)
   );
 
-  reg('throb', { icon: '🫀', label: 'Throb' }, (shape, s, layer) =>
-    new Konva.Animation(f => {
+  reg('throb', { icon: '🫀', label: 'Throb' }, (shape, s, layer) => {
+    const ft = s.fillTarget || shape;
+    return new Konva.Animation(f => {
       const pulse = 0.5 + 0.5 * Math.sin(f.time / 1000 * Math.PI);
       shape.scaleX(s.origScaleX * (1 + 0.04 * pulse));
       shape.scaleY(s.origScaleY * (1 + 0.04 * pulse));
-      if (shape.shadowBlur) shape.shadowBlur(8 + 14 * pulse);
-      if (shape.shadowColor) shape.shadowColor('var(--accent)');
-    }, layer)
-  );
+      if (ft.shadowBlur) ft.shadowBlur(8 + 14 * pulse);
+      if (ft.shadowColor) ft.shadowColor('var(--accent)');
+    }, layer);
+  });
 
   reg('fade-in', { icon: '👁️', label: 'Fade In' }, (shape, s, layer) =>
     new Konva.Animation(f => {

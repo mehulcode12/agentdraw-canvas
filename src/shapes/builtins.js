@@ -225,62 +225,41 @@ export function registerBuiltinShapes(services) {
   );
 
   shapes.register('number-badge', cfg => {
-    const group = new Konva.Group(cfg);
-    const circle = new Konva.Circle({
-      radius: 15,
-      fill: cfg.fill || '#333',
-      stroke: '#fff',
-      strokeWidth: 2
-    });
-    const text = new Konva.Text({
-      text: cfg.text || '1',
-      fontSize: 14,
-      fill: '#fff',
-      offsetX: 5,
-      offsetY: 7
-    });
-    group.add(circle);
+    const group = new Konva.Group({ ...cfg, draggable: cfg.draggable ?? true });
+    const nucleus = new Konva.Circle({ radius: 15, fill: cfg.fill || '#333', stroke: '#fff', strokeWidth: 2, listening: false });
+    const text = new Konva.Text({ text: cfg.text || '1', fontSize: 14, fill: '#fff', offsetX: 5, offsetY: 7, listening: false });
+    // Hit area
+    group.add(new Konva.Circle({ radius: 16, fill: 'rgba(0,0,0,0.001)', listening: true }));
+    group.add(nucleus);
     group.add(text);
+    group._nucleus = nucleus;
+    group._isCentered = true;
     return group;
   });
 
   shapes.register('axis', cfg => {
-    const group = new Konva.Group(cfg);
+    const group = new Konva.Group({ ...cfg, draggable: cfg.draggable ?? true });
     const size = cfg.size || 200;
+    const color = cfg.fill || '#555';
+    // Hit area (square covering the axes)
+    group.add(new Konva.Rect({ x: -size / 2, y: -size / 2, width: size, height: size, fill: 'rgba(0,0,0,0.001)', listening: true }));
     // X axis
-    group.add(new Konva.Arrow({
-      points: [-size / 2, 0, size / 2, 0],
-      pointerLength: 10,
-      pointerWidth: 10,
-      fill: cfg.fill || '#555',
-      stroke: cfg.fill || '#555',
-      strokeWidth: 2
-    }));
+    group.add(new Konva.Arrow({ points: [-size / 2, 0, size / 2, 0], pointerLength: 10, pointerWidth: 10, fill: color, stroke: color, strokeWidth: 2, listening: false }));
     // Y axis
-    group.add(new Konva.Arrow({
-      points: [0, size / 2, 0, -size / 2],
-      pointerLength: 10,
-      pointerWidth: 10,
-      fill: cfg.fill || '#555',
-      stroke: cfg.fill || '#555',
-      strokeWidth: 2
-    }));
+    group.add(new Konva.Arrow({ points: [0, size / 2, 0, -size / 2], pointerLength: 10, pointerWidth: 10, fill: color, stroke: color, strokeWidth: 2, listening: false }));
+    group._isCentered = true;
     return group;
   });
 
   shapes.register('timeline-dot', cfg => {
-    const group = new Konva.Group(cfg);
-    group.add(new Konva.Line({
-      points: [-50, 0, 50, 0],
-      stroke: cfg.fill || '#333',
-      strokeWidth: 2
-    }));
-    group.add(new Konva.Circle({
-      radius: 8,
-      fill: cfg.fill || '#333',
-      stroke: '#fff',
-      strokeWidth: 2
-    }));
+    const group = new Konva.Group({ ...cfg, draggable: cfg.draggable ?? true });
+    const nucleus = new Konva.Circle({ radius: 8, fill: cfg.fill || '#333', stroke: '#fff', strokeWidth: 2, listening: false });
+    // Hit area
+    group.add(new Konva.Rect({ x: -50, y: -10, width: 100, height: 20, fill: 'rgba(0,0,0,0.001)', listening: true }));
+    group.add(new Konva.Line({ points: [-50, 0, 50, 0], stroke: cfg.fill || '#333', strokeWidth: 2, listening: false }));
+    group.add(nucleus);
+    group._nucleus = nucleus;
+    group._isCentered = true;
     return group;
   });
 
@@ -426,39 +405,30 @@ export function registerBuiltinShapes(services) {
   });
 
   shapes.register('warning-sign', cfg => {
-    const group = new Konva.Group(cfg);
-    group.add(new Konva.RegularPolygon({
-      sides: 3,
-      radius: 30,
-      fill: '#FFC107',
-      stroke: '#000',
-      strokeWidth: 2
-    }));
-    group.add(new Konva.Text({
-      text: '!',
-      fontSize: 24,
-      fontStyle: 'bold',
-      fill: '#000',
-      offsetX: 4,
-      offsetY: 12
-    }));
+    const group = new Konva.Group({ ...cfg, draggable: cfg.draggable ?? true });
+    const nucleus = new Konva.RegularPolygon({ sides: 3, radius: 30, fill: '#FFC107', stroke: '#000', strokeWidth: 2, listening: false });
+    // Hit area
+    group.add(new Konva.Circle({ radius: 32, fill: 'rgba(0,0,0,0.001)', listening: true }));
+    group.add(nucleus);
+    group.add(new Konva.Text({ text: '!', fontSize: 24, fontStyle: 'bold', fill: '#000', offsetX: 4, offsetY: 12, listening: false }));
+    group._nucleus = nucleus;
+    group._isCentered = true;
     return group;
   });
 
   shapes.register('atom', cfg => {
-    const group = new Konva.Group(cfg);
+    const group = new Konva.Group({ ...cfg, draggable: cfg.draggable ?? true });
     const r = 30;
-    // Nucleus
-    group.add(new Konva.Circle({ radius: 8, fill: cfg.fill || '#333' }));
+    const nucleus = new Konva.Circle({ radius: 8, fill: cfg.fill || '#333', listening: false });
+    // Hit area
+    group.add(new Konva.Circle({ radius: r + 6, fill: 'rgba(0,0,0,0.001)', listening: true }));
     // Orbits
     for (let i = 0; i < 3; i++) {
-      group.add(new Konva.Ellipse({
-        radiusX: r, radiusY: 12,
-        rotation: i * 60,
-        stroke: cfg.stroke || '#888',
-        strokeWidth: 1
-      }));
+      group.add(new Konva.Ellipse({ radiusX: r, radiusY: 12, rotation: i * 60, stroke: cfg.stroke || '#888', strokeWidth: 1, listening: false }));
     }
+    group.add(nucleus);
+    group._nucleus = nucleus;
+    group._isCentered = true;
     return group;
   });
 
@@ -515,19 +485,14 @@ export function registerBuiltinShapes(services) {
   });
 
   shapes.register('magnifier', cfg => {
-    const group = new Konva.Group(cfg);
-    group.add(new Konva.Circle({
-      radius: 20,
-      fill: 'rgba(173, 216, 230, 0.3)',
-      stroke: '#333',
-      strokeWidth: 3
-    }));
-    group.add(new Konva.Line({
-      points: [14, 14, 30, 30],
-      stroke: '#333',
-      strokeWidth: 5,
-      lineCap: 'round'
-    }));
+    const group = new Konva.Group({ ...cfg, draggable: cfg.draggable ?? true });
+    const nucleus = new Konva.Circle({ radius: 20, fill: 'rgba(173,216,230,0.3)', stroke: '#333', strokeWidth: 3, listening: false });
+    // Hit area
+    group.add(new Konva.Circle({ radius: 22, fill: 'rgba(0,0,0,0.001)', listening: true }));
+    group.add(nucleus);
+    group.add(new Konva.Line({ points: [14, 14, 30, 30], stroke: '#333', strokeWidth: 5, lineCap: 'round', listening: false }));
+    group._nucleus = nucleus;
+    group._isCentered = true;
     return group;
   });
 
@@ -572,40 +537,55 @@ export function registerBuiltinShapes(services) {
       const NUCLEUS_R = 18 * scale;
       const SHELL_GAP = 22 * scale;
       const ELECTRON_R = 4 * scale;
-      const group = new Konva.Group({ x: cfg.x || 0, y: cfg.y || 0 });
+      // Pass draggable through so ShapeRegistry.create()'s base config is respected
+      const group = new Konva.Group({
+        x: cfg.x || 0,
+        y: cfg.y || 0,
+        draggable: cfg.draggable ?? true,
+      });
+
+      // ── INVISIBLE HIT AREA — covers full atom so group is selectable/draggable
+      // (All other children have listening:false, so this is the sole event target)
+      const outerR = NUCLEUS_R + SHELL_GAP * el.shells.length;
+      group.add(new Konva.Circle({
+        radius: outerR,
+        fill: 'rgba(0,0,0,0.001)', // near-invisible but registers Konva hit tests
+        stroke: 'transparent',
+        listening: true,
+      }));
 
       // ── Electron shells + electrons (drawn behind nucleus) ──────────
+
       el.shells.forEach((electronCount, shellIdx) => {
         const shellR = NUCLEUS_R + SHELL_GAP * (shellIdx + 1);
 
-        // Dashed orbit ring
+        // Dashed orbit ring — non-interactive, events pass through to group
         group.add(new Konva.Circle({
           radius: shellR,
           fill: 'transparent',
           stroke: cfg.shellColor || 'rgba(120,180,255,0.5)',
           strokeWidth: 1.2 * scale,
           dash: [4, 3],
+          listening: false,
         }));
 
-        // Electron dots — evenly spaced, starting from the top
+        // Electron dots — non-interactive, NO shadow (shadowBlur is per-node per-frame, very expensive)
         for (let e = 0; e < electronCount; e++) {
           const angle = ((e / electronCount) * Math.PI * 2) - Math.PI / 2;
           group.add(new Konva.Circle({
             x: shellR * Math.cos(angle),
             y: shellR * Math.sin(angle),
             radius: ELECTRON_R,
-            fill: cfg.electronColor || '#60AAFF',
+            fill: cfg.electronColor || '#7EC8FF',
             stroke: '#fff',
             strokeWidth: 0.8 * scale,
-            shadowColor: '#3399FF',
-            shadowBlur: 4,
-            shadowOpacity: 0.6,
+            listening: false,
           }));
         }
       });
 
       // ── Nucleus ─────────────────────────────────────────────────────
-      group.add(new Konva.Circle({
+      const nucleus = new Konva.Circle({
         radius: NUCLEUS_R,
         fill: cfg.fill || el.fill,
         stroke: el.border,
@@ -613,7 +593,15 @@ export function registerBuiltinShapes(services) {
         shadowColor: el.border,
         shadowBlur: 8,
         shadowOpacity: 0.5,
-      }));
+        listening: false,
+      });
+      group.add(nucleus);
+
+      // Expose nucleus for AnimationRegistry — fill/shadow animations
+      // will target this node instead of the Group (which ignores fill)
+      group._nucleus = nucleus;
+      // Tell _shiftToCenter this group is already origin-centered
+      group._isCentered = true;
 
       // Symbol — centered in nucleus
       const symSize = el.symbol.length > 1 ? NUCLEUS_R * 0.9 : NUCLEUS_R * 1.1;
@@ -627,6 +615,7 @@ export function registerBuiltinShapes(services) {
         width: NUCLEUS_R * 2,
         offsetX: NUCLEUS_R,
         offsetY: symSize * 0.5,
+        listening: false,
       }));
 
       // Atomic number — small, top-left of nucleus
@@ -638,6 +627,7 @@ export function registerBuiltinShapes(services) {
         opacity: 0.8,
         x: -NUCLEUS_R + 2 * scale,
         y: -NUCLEUS_R + 2 * scale,
+        listening: false,
       }));
 
       return group;

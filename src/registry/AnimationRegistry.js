@@ -22,12 +22,12 @@ export function createAnimationRegistry(services) {
   /** @type {Map<string, { factory: Function, meta: object }>} */
   const _registry = new Map();
   /** @type {Map<number, { anim: Konva.Animation, state: object, type: string }>} */
-  const _running  = new Map();
+  const _running = new Map();
 
   const PANEL_ORDER = [
-    'pulse','spin','float','rainbow','shake','bounce',
-    'jello','flash','heartbeat','rubberband','swing','wobble',
-    'twinkle','orbit','wave','spiral','pop','glitch','pendulum','throb',
+    'pulse', 'spin', 'float', 'rainbow', 'shake', 'bounce',
+    'jello', 'flash', 'heartbeat', 'rubberband', 'swing', 'wobble',
+    'twinkle', 'orbit', 'wave', 'spiral', 'pop', 'glitch', 'pendulum', 'throb',
   ];
 
   function register(type, factory, meta = {}) {
@@ -36,8 +36,10 @@ export function createAnimationRegistry(services) {
 
   // ── Centre-origin shift ───────────────────────────────────────
   function _shiftToCenter(shape) {
-    const r  = shape.getSelfRect();
-    const cx = r.x + r.width  / 2;
+    // Atom groups (and any pre-centered groups) opt out to avoid double-offsetting
+    if (shape._isCentered) return { dx: 0, dy: 0 };
+    const r = shape.getSelfRect();
+    const cx = r.x + r.width / 2;
     const cy = r.y + r.height / 2;
     const dx = cx - shape.offsetX();
     const dy = cy - shape.offsetY();
@@ -66,9 +68,10 @@ export function createAnimationRegistry(services) {
       shape.scaleX(s.origScaleX);
       shape.scaleY(s.origScaleY);
       shape.opacity(s.origOpacity);
-      if (shape.shadowBlur)            shape.shadowBlur(s.origShadowBlur);
-      if (shape.shadowColor)           shape.shadowColor(s.origShadowColor);
-      if (s.origFill && shape.fill)    shape.fill(s.origFill);
+      const ft = s.fillTarget || shape;
+      if (ft.shadowBlur) ft.shadowBlur(s.origShadowBlur);
+      if (ft.shadowColor) ft.shadowColor(s.origShadowColor);
+      if (s.origFill && ft.fill) ft.fill(s.origFill);
     }
 
     _running.delete(shapeId);
@@ -96,19 +99,24 @@ export function createAnimationRegistry(services) {
 
     const { dx, dy } = _shiftToCenter(shape);
 
+    // For groups with a _nucleus (atoms), route fill/shadow to the nucleus child
+    const fillTarget = shape._nucleus || shape;
+
     const state = {
       shape, dx, dy,
-      origX:          shape.x(),
-      origY:          shape.y(),
-      origRot:        shape.rotation(),
-      origScaleX:     shape.scaleX(),
-      origScaleY:     shape.scaleY(),
-      origOpacity:    shape.opacity(),
-      origFill:       shape.fill ? shape.fill() : null,
-      origShadowBlur: shape.shadowBlur ? shape.shadowBlur() : 0,
-      origShadowColor:shape.shadowColor ? shape.shadowColor() : 'black',
-      origOffsetX:    shape.offsetX() - dx,
-      origOffsetY:    shape.offsetY() - dy,
+      origX: shape.x(),
+      origY: shape.y(),
+      origRot: shape.rotation(),
+      origScaleX: shape.scaleX(),
+      origScaleY: shape.scaleY(),
+      origOpacity: shape.opacity(),
+      origFill: fillTarget.fill ? fillTarget.fill() : null,
+      origShadowBlur: fillTarget.shadowBlur ? fillTarget.shadowBlur() : 0,
+      origShadowColor: fillTarget.shadowColor ? fillTarget.shadowColor() : 'black',
+      origOffsetX: shape.offsetX() - dx,
+      origOffsetY: shape.offsetY() - dy,
+      // Pass fillTarget so animation factories can reuse it
+      fillTarget,
     };
 
     const anim = entry.factory(shape, state, services.core.layer);
@@ -128,7 +136,7 @@ export function createAnimationRegistry(services) {
   }
 
   function animateAll() {
-    const types  = PANEL_ORDER;
+    const types = PANEL_ORDER;
     const shapes = services.core.layer
       .getChildren()
       .filter(s => s !== services.core.tr && s.draggable?.() && s.name() !== 'watermark');
