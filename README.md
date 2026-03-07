@@ -11,6 +11,7 @@ Plugin-ready architecture — add custom shapes, animations, and tools without t
 
 - 🧩 **Fully modular** — 13 independent ES modules
 - 🔌 **Plugin API** — register custom shapes, animations, tools
+- 🎨 **40+ Built-in Shapes** — including 20 Bohr model Atoms (H–Ca), Physics mechanics (car, spring, pulley, incline), and Teacher essentials (curly brace, beaker, magnifier)
 - 🎭 **20 animations** — pulse, spin, float, rainbow, glitch, orbit, and more
 - 🖱️ **Smooth pan & zoom** — wheel zoom toward cursor, space/middle-mouse pan
 - 🌗 **Dark & light modes** — persisted to localStorage
