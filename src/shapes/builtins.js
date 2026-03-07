@@ -505,6 +505,253 @@ export function registerBuiltinShapes(services) {
     })
   );
 
+  // ── PHYSICS DIAGRAM SHAPES ───────────────────────────────────────────────────
+
+  shapes.register('car', cfg => new Konva.Shape({
+    ...cfg,
+    sceneFunc(ctx, shape) {
+      const w = cfg.width || 120;
+      const h = cfg.height || 60;
+      const c = cfg.fill || '#6c63ff';
+      // Body
+      ctx.beginPath();
+      ctx.rect(0, h * 0.4, w, h * 0.4);
+      ctx.fillStyle = c; ctx.fill(); ctx.stroke();
+      // Cabin (trap)
+      ctx.beginPath();
+      ctx.moveTo(w * 0.2, h * 0.4);
+      ctx.lineTo(w * 0.3, h * 0.05);
+      ctx.lineTo(w * 0.75, h * 0.05);
+      ctx.lineTo(w * 0.9, h * 0.4);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      // Wheels
+      const wr = h * 0.2;
+      [w * 0.22, w * 0.75].forEach(cx => {
+        ctx.beginPath();
+        ctx.arc(cx, h * 0.82, wr, 0, Math.PI * 2);
+        ctx.fillStyle = '#333'; ctx.fill(); ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, h * 0.82, wr * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = '#aaa'; ctx.fill();
+      });
+      ctx.fillStrokeShape(shape);
+    }
+  }));
+
+  shapes.register('incline', cfg => new Konva.Shape({
+    ...cfg,
+    sceneFunc(ctx, shape) {
+      const w = cfg.width || 120;
+      const h = cfg.height || 80;
+      // Ramp triangle
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+      ctx.lineTo(w, h);
+      ctx.lineTo(w, 0);
+      ctx.closePath();
+      ctx.fillStrokeShape(shape);
+      // Angle arc
+      ctx.beginPath();
+      ctx.arc(w, h, 22, -Math.PI / 2, -Math.atan2(h, 0) - 0.01, true);
+      ctx.stroke();
+    }
+  }));
+
+  shapes.register('spring', cfg => new Konva.Shape({
+    ...cfg,
+    sceneFunc(ctx, shape) {
+      const w = cfg.width || 20;
+      const h = cfg.height || 100;
+      const coils = cfg.coils || 8;
+      const amp = w / 2;
+      ctx.beginPath();
+      ctx.moveTo(w / 2, 0);
+      // Vertical lines top/bottom
+      ctx.lineTo(w / 2, h * 0.06);
+      for (let i = 0; i <= coils; i++) {
+        const y = h * 0.06 + (i / coils) * h * 0.88;
+        ctx.lineTo(i % 2 === 0 ? w / 2 + amp : w / 2 - amp, y);
+      }
+      ctx.lineTo(w / 2, h);
+      ctx.stroke();
+      ctx.fillStrokeShape(shape);
+    }
+  }));
+
+  shapes.register('pulley', cfg => new Konva.Shape({
+    ...cfg,
+    sceneFunc(ctx, shape) {
+      const r = cfg.radius || 30;
+      // Outer wheel
+      ctx.beginPath();
+      ctx.arc(r, r, r, 0, Math.PI * 2);
+      ctx.fillStrokeShape(shape);
+      // Groove
+      ctx.beginPath();
+      ctx.arc(r, r, r * 0.7, 0, Math.PI * 2);
+      ctx.stroke();
+      // Hub
+      ctx.beginPath();
+      ctx.arc(r, r, r * 0.15, 0, Math.PI * 2);
+      ctx.fillStyle = '#555'; ctx.fill();
+      // Axle cross lines
+      [[r, 0, r, r * 2], [0, r, r * 2, r]].forEach(([x1, y1, x2, y2]) => {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      });
+    }
+  }));
+
+  shapes.register('pendulum', cfg => new Konva.Shape({
+    ...cfg,
+    sceneFunc(ctx, shape) {
+      const w = cfg.width || 60;
+      const h = cfg.height || 120;
+      const bobR = 14;
+      const pivotX = w / 2;
+      // Pivot point
+      ctx.beginPath();
+      ctx.arc(pivotX, 0, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#555'; ctx.fill();
+      // String
+      ctx.beginPath();
+      ctx.moveTo(pivotX, 0);
+      ctx.lineTo(pivotX, h - bobR);
+      ctx.stroke();
+      // Bob
+      ctx.beginPath();
+      ctx.arc(pivotX, h - bobR, bobR, 0, Math.PI * 2);
+      ctx.fillStrokeShape(shape);
+      // Ceiling line
+      ctx.beginPath();
+      ctx.moveTo(0, 0); ctx.lineTo(w, 0); ctx.stroke();
+    }
+  }));
+
+  shapes.register('ladder', cfg => new Konva.Shape({
+    ...cfg,
+    sceneFunc(ctx, shape) {
+      const w = cfg.width || 40;
+      const h = cfg.height || 120;
+      const rungs = cfg.rungs || 6;
+      const lean = w * 0.25;
+      // Left rail
+      ctx.beginPath(); ctx.moveTo(lean, 0); ctx.lineTo(0, h); ctx.stroke();
+      // Right rail
+      ctx.beginPath(); ctx.moveTo(lean + w, 0); ctx.lineTo(w, h); ctx.stroke();
+      // Rungs
+      for (let i = 1; i < rungs; i++) {
+        const t = i / rungs;
+        const leftX = lean * (1 - t);
+        const rightX = (lean + w) * (1 - t) + w * t;
+        const y = t * h;
+        ctx.beginPath();
+        ctx.moveTo(leftX, y);
+        ctx.lineTo(rightX, y);
+        ctx.stroke();
+      }
+      ctx.fillStrokeShape(shape);
+    }
+  }));
+
+  shapes.register('boat', cfg => new Konva.Shape({
+    ...cfg,
+    sceneFunc(ctx, shape) {
+      const w = cfg.width || 120;
+      const h = cfg.height || 70;
+      // Hull
+      ctx.beginPath();
+      ctx.moveTo(w * 0.05, h * 0.4);
+      ctx.lineTo(w * 0.95, h * 0.4);
+      ctx.lineTo(w * 0.85, h * 0.75);
+      ctx.quadraticCurveTo(w * 0.5, h * 0.95, w * 0.15, h * 0.75);
+      ctx.closePath();
+      ctx.fillStrokeShape(shape);
+      // Deck line
+      ctx.beginPath();
+      ctx.moveTo(w * 0.05, h * 0.4);
+      ctx.lineTo(w * 0.95, h * 0.4);
+      ctx.stroke();
+      // Mast
+      ctx.beginPath();
+      ctx.moveTo(w * 0.5, h * 0.38);
+      ctx.lineTo(w * 0.5, h * 0.02);
+      ctx.stroke();
+      // Sail
+      ctx.beginPath();
+      ctx.moveTo(w * 0.5, h * 0.05);
+      ctx.lineTo(w * 0.82, h * 0.3);
+      ctx.lineTo(w * 0.5, h * 0.35);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fill(); ctx.stroke();
+    }
+  }));
+
+  shapes.register('person-figure', cfg => new Konva.Shape({
+    ...cfg,
+    sceneFunc(ctx, shape) {
+      const h = cfg.height || 100;
+      const cx = (cfg.width || 40) / 2;
+      const headR = h * 0.12;
+      const torsoTop = headR * 2.2;
+      const torsoBot = h * 0.58;
+      const c = cfg.fill || '#333';
+      // Head
+      ctx.beginPath();
+      ctx.arc(cx, headR, headR, 0, Math.PI * 2);
+      ctx.fillStyle = c; ctx.fill(); ctx.stroke();
+      // Torso
+      ctx.beginPath();
+      ctx.moveTo(cx, torsoTop); ctx.lineTo(cx, torsoBot); ctx.stroke();
+      // Arms
+      ctx.beginPath();
+      ctx.moveTo(cx - h * 0.18, h * 0.38);
+      ctx.lineTo(cx, h * 0.32);
+      ctx.lineTo(cx + h * 0.18, h * 0.38);
+      ctx.stroke();
+      // Legs
+      [[cx - h * 0.14, h], [cx + h * 0.14, h]].forEach(([lx, ly]) => {
+        ctx.beginPath(); ctx.moveTo(cx, torsoBot); ctx.lineTo(lx, ly); ctx.stroke();
+      });
+      ctx.fillStrokeShape(shape);
+    }
+  }));
+
+  shapes.register('train', cfg => new Konva.Shape({
+    ...cfg,
+    sceneFunc(ctx, shape) {
+      const w = cfg.width || 140;
+      const h = cfg.height || 80;
+      const c = cfg.fill || '#c0392b';
+      // Main body
+      ctx.beginPath();
+      ctx.roundRect(0, h * 0.1, w * 0.85, h * 0.55, 6);
+      ctx.fillStyle = c; ctx.fill(); ctx.stroke();
+      // Cabin
+      ctx.beginPath();
+      ctx.roundRect(w * 0.55, 0, w * 0.3, h * 0.42, 4);
+      ctx.fill(); ctx.stroke();
+      // Smokestack
+      ctx.beginPath();
+      ctx.rect(w * 0.09, -h * 0.18, w * 0.07, h * 0.3);
+      ctx.fillStyle = '#555'; ctx.fill(); ctx.stroke();
+      // Wheels
+      const wr = h * 0.17;
+      [w * 0.15, w * 0.42, w * 0.69].forEach(cx => {
+        ctx.beginPath();
+        ctx.arc(cx, h * 0.72, wr, 0, Math.PI * 2);
+        ctx.fillStyle = '#222'; ctx.fill(); ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, h * 0.72, wr * 0.35, 0, Math.PI * 2);
+        ctx.fillStyle = '#999'; ctx.fill();
+      });
+      // Ground line
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.9); ctx.lineTo(w, h * 0.9); ctx.stroke();
+      ctx.fillStrokeShape(shape);
+    }
+  }));
+
   // ── CHEMICAL ELEMENTS — Bohr Model (nucleus + electron shells) ─────────────
   // Agent uses `atom-H`, `atom-C`, `atom-O`, etc.
   // CPK colors for nucleus; correct electron counts per shell.
