@@ -202,6 +202,7 @@
 
     // Init studio
     const studio = new CanvasStudio();
+    window.studio = studio; // Expose globally for console testing and AI agents
 
     // ── Wire all buttons via JS (no inline onclick needed) ──────────
     const $ = id => document.getElementById(id);

@@ -1,197 +1,72 @@
 # 🎨 AgentDraw canvas
 
-A **modular, extensible canvas drawing library** built on [Konva.js](https://konvajs.org/).  
-Plugin-ready architecture — add custom shapes, animations, and tools without touching core files.
+AgentDraw is an AI-ready, multimodal canvas drawing library built on Konva.js. It bridges the gap between LLMs and visual interfaces by providing headless spatial reasoning APIs alongside a rich, extensible diagramming whiteboard.
 
+[![npm version](https://img.shields.io/npm/v/agentdraw-canvas.svg)](https://npmjs.org/package/agentdraw-canvas)
 [![Konva](https://img.shields.io/badge/Konva-v9-blue)](https://konvajs.org/)
-
----
-
-## ✨ Features
-
-- 🧩 **Fully modular** — 13 independent ES modules
-- 🔌 **Plugin API** — register custom shapes, animations, tools
-- 🎨 **40+ Built-in Shapes** — including 20 Bohr model Atoms (H–Ca), Physics mechanics (car, spring, pulley, incline), and Teacher essentials (curly brace, beaker, magnifier)
-- 🎭 **20 animations** — pulse, spin, float, rainbow, glitch, orbit, and more
-- 🖱️ **Smooth pan & zoom** — wheel zoom toward cursor, space/middle-mouse pan
-- 🌗 **Dark & light modes** — persisted to localStorage
-- ✏️ **Pencil tool** with live colour/size cursor
-- 🖊️ **Inline text editing** — click to place, double-click to edit
-- ↶ **Undo/redo** — 60-step history with batch operations
-- 🤖 **Agent-ready API** — UUID-based shape targeting, state serialization, batch operations
-- 📦 **Zero build step** — works with `npx serve .`
 
 ---
 
 ## 🚀 Quick Start
 
+Install via npm:
 ```bash
-git clone https://github.com/mehulcode12/agentdraw-canvas.git
-cd agentdraw-canvas
-npx serve .          # opens on http://localhost:3000
+npm install agentdraw-canvas
 ```
 
-No bundler required. Runs as native ES modules in modern browsers.
+**Basic Usage:**
+```html
+<script type="module">
+  import { CanvasStudio } from 'agentdraw-canvas';
+
+  // Initialize the full interactive studio
+  const studio = new CanvasStudio();
+  window.studio = studio; // Expose for console testing / agent access
+
+  // Programmatically add a shape
+  studio.Shapes.create('rect', { x: 100, y: 100, width: 120, height: 80 });
+</script>
+```
 
 ---
 
-## 📁 Project Structure
+## 🤖 Agent-Ready API (v2.0)
 
-```
-agentdraw-canvas/
-├── index.html                  ← Entry point (HTML)
-├── package.json
-├── src/
-│   ├── EventBus.js             ← Pub/sub event system
-│   ├── CanvasStudio.js         ← Public API orchestrator
-│   ├── core/
-│   │   ├── Core.js             ← Konva stage, layer, transformer
-│   │   └── History.js          ← Undo / redo
-│   ├── ui/
-│   │   ├── Theme.js            ← Dark / light mode
-│   │   └── UI.js               ← Stats, toast, cursors, props
-│   ├── modules/
-│   │   ├── Color.js            ← Colour palette
-│   │   ├── Interaction.js      ← Hover, select, drag
-│   │   ├── Drawing.js          ← Pencil + drag-draw
-│   │   ├── Text.js             ← Text placement & editing
-│   │   ├── PanZoom.js          ← Pan / zoom
-│   │   └── Export.js           ← PNG / SVG / JSON + Agent API
-│   ├── registry/
-│   │   ├── ShapeRegistry.js    ← Extensible shape factory
-│   │   ├── ToolRegistry.js     ← Extensible tool system
-│   │   └── AnimationRegistry.js← Extensible animation engine
-│   ├── shapes/
-│   │   └── builtins.js         ← Built-in shape registrations
-│   ├── animations/
-│   │   └── builtins.js         ← 20 built-in animation presets
-│   └── tools/
-│       └── definitions.js      ← Built-in tool registrations
-├── styles/
-│   ├── theme.css               ← CSS variables (dark + light)
-│   ├── base.css                ← Reset + layout
-│   └── components.css          ← All UI components
-├── docs/
-│   ├── API.md                  ← Full API reference
-│   └── EXTENDING.md            ← Plugin authoring guide
-└── examples/
-    └── custom-plugin.html      ← Custom shape + animation example
-```
+AgentDraw v2 introduces a dedicated `studio.Agent` namespace, turning the canvas into a deterministic environment for multimodal AI agents.
+
+---
+
+## ✨ Studio Features
+
+- 🧩 **Fully modular** — 13 independent ES modules
+- 🔌 **Plugin API** — register custom shapes, animations, tools
+- 🎨 **40+ Built-in Shapes** — including 20 Bohr model Atoms (H–Ca), Physics mechanics, and Teacher essentials
+- 🎭 **20 animations** — pulse, spin, float, rainbow, glitch, orbit, and more
+- 🖱️ **Smooth pan & zoom** — wheel zoom toward cursor, space/middle-mouse pan
+- 🌗 **Dark & light modes** — persisted to localStorage
+- ✏️ **Pencil tool** with live colour/size cursor
+- 🖊️ **Inline text editing** — click to place, double-click to edit
 
 ---
 
 ## 🔌 Plugin API
 
-### Add a custom shape
+Extend the canvas without touching core files:
 
 ```js
+// 1. Add a custom shape
 studio.Shapes.register('cloud', (cfg) => {
-  const group = new Konva.Group(cfg);
-  const blobs = [
-    { x: 0,  y: 0,  r: 30 }, { x: 40, y: -10, r: 35 },
-    { x: 75, y: 0,  r: 30 }, { x: 20, y: 15,  r: 25 },
-  ];
-  blobs.forEach(b => group.add(
-    new Konva.Circle({ x: b.x, y: b.y, radius: b.r, fill: cfg.fill })
-  ));
-  return group;
+  return new Konva.Circle({ ...cfg, radius: 30 }); // Return any Konva Group/Node
 });
 
-studio.Shapes.quickAdd('cloud');
-```
-
-### Add a custom animation
-
-```js
-studio.Animations.register(
-  'disco',
-  (shape, state, layer) =>
-    new Konva.Animation(frame => {
-      shape.rotation(state.origRot + frame.time / 500 * 360);
-      shape.fill(`hsl(${frame.time / 5 % 360}, 80%, 60%)`);
-    }, layer),
-  { icon: '🪩', label: 'Disco' }          // appears in the panel
-);
-```
-
-### Add a custom tool
-
-```js
+// 2. Add a custom tool
 studio.Tools.register('stamp', {
   label: 'Stamp', icon: '🔖', shortcut: 'Q', cursor: 'crosshair',
-  onMousedown: (e, services) => {
-    if (e.target !== services.core.stage) return;
-    services.shapes.quickAdd('star');
-  },
-});
-```
-
-### Listen to events
-
-```js
-studio.Events.on('selection:change', shape => {
-  console.log('Selected:', shape?.getClassName());
+  onMousedown: (e, services) => services.shapes.quickAdd('star')
 });
 
-studio.Events.on('animation:start', ({ shapeId, type }) => {
-  console.log('Animation started:', type);
-});
-```
-
----
-
-## 🌗 Dark / Light Mode
-
-```js
-studio.Theme.toggle();          // toggle
-studio.Theme.mode();            // 'dark' | 'light'
-```
-
-Or click the ☀️/🌙 button in the header. Preference is saved to `localStorage`.
-
----
-
-## 🤖 Agent-Ready Features
-
-AgentDraw Canvas includes APIs designed for AI agents and programmatic control:
-
-### UUID-Based Shape Targeting
-
-Every shape gets a stable, unique identifier:
-
-```js
-const circle = studio.Shapes.create('circle');
-console.log(circle._publicId);  // 'a0b1c2d3-e4f5-...'
-
-// Target shape by UUID later
-studio.Shapes.updateById(circle._publicId, { fill: '#ff0000' });
-```
-
-### State Serialization
-
-Export and restore complete canvas state:
-
-```js
-// Save state
-const state = studio.Export.getState();
-localStorage.setItem('canvas', JSON.stringify(state));
-
-// Restore state
-const saved = JSON.parse(localStorage.getItem('canvas'));
-studio.Export.loadState(saved);
-```
-
-### Batch Operations
-
-Group multiple operations into a single undo step:
-
-```js
-studio.History.batch(() => {
-  studio.Shapes.create('circle', { x: 100, y: 100 });
-  studio.Shapes.create('rect', { x: 200, y: 200 });
-  studio.Shapes.create('star', { x: 300, y: 300 });
-});
-// All 3 shapes = 1 undo action
+// 3. Listen to events
+studio.Events.on('selection:change', shape => console.log('Selected:', shape));
 ```
 
 ---

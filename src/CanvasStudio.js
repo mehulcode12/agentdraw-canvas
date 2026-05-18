@@ -27,6 +27,7 @@ import { createPanZoom }          from './modules/PanZoom.js';
 import { createExport }           from './modules/Export.js';
 import { createStickyNote }       from './modules/StickyNote.js';
 import { createImageUpload }      from './modules/ImageUpload.js';
+import { createAgent }            from './modules/Agent.js';
 import { createShapeRegistry }    from './registry/ShapeRegistry.js';
 import { createToolRegistry }     from './registry/ToolRegistry.js';
 import { createAnimationRegistry } from './registry/AnimationRegistry.js';
@@ -90,6 +91,9 @@ export class CanvasStudio {
 
     // ── 16. History (depends on all others being ready) ─────────
     svc.history = createHistory(svc);
+
+    // ── 17. Agent API ───────────────────────────────────────────
+    svc.agent = createAgent(svc);
 
     // ── Register built-ins ──────────────────────────────────────
     registerBuiltinShapes(svc);
@@ -252,6 +256,21 @@ export class CanvasStudio {
   get UI() {
     const u = this._svc.ui;
     return { toast: u.toast.bind(u), onPropChange: u.onPropChange.bind(u) };
+  }
+
+  /** Agent API for Spatial Reasoning & AI integration */
+  get Agent() {
+    const a = this._svc.agent;
+    return {
+      getSnapshot: a.getSnapshot.bind(a),
+      getZoneMap: a.getZoneMap.bind(a),
+      getOverlaps: a.getOverlaps.bind(a),
+      setMeta: a.setMeta.bind(a),
+      getMeta: a.getMeta.bind(a),
+      getAnchor: a.getAnchor.bind(a),
+      clear: a.clear.bind(a),
+      clearStage: a.clearStage.bind(a)
+    };
   }
 
   /** Raw EventBus for custom integrations */

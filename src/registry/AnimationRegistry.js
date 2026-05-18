@@ -164,5 +164,9 @@ export function createAnimationRegistry(services) {
     });
   }
 
-  return { register, apply, stopForShape, stopAll, animateAll, initPanel };
+  function getRunning() {
+    return Array.from(_running.values());
+  }
+
+  return { register, apply, stopForShape, stopAll, animateAll, initPanel, getRunning };
 }
